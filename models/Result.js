@@ -9,12 +9,14 @@ export const ResultSchema = new Schema({
     type: [String],
     description: 'List of playerIDs'
   },
-  tournamentID: {
+  tournamenID: {
     type: String,
-    description: 'Tournament unique ID',
-    unique: true,
+    ref: 'Tournament',
+    description: 'Tournamen ID',
   },
-  place: Number
+  place: {
+    type: Number
+  }
 },
 {
   collection: 'results'
@@ -26,8 +28,11 @@ export const ResultTC = composeWithRelay(composeWithMongoose(Result));
 ResultTC.addRelation(
   'tournament',
   () => ({
-    resolver: TournamentTC.getResolver('findOne'),
-    projection: { tournamentId: true },
+    resolver: TournamentTC.getResolver('findById'),
+    args: {
+      _id: (source) => (source.tournamenID),
+    },
+    projection: { tournamenID: true },
   })
 );
 
@@ -42,12 +47,12 @@ ResultTC.addRelation(
 //   })
 // );
 
-// ResultTC.addRelation(
-//   'players',
-//   () => ({
-//     resolver: PlayerTC.getResolver('findByIds'),
-//     args: {
-//       _ids: (source) => ( source.team ),
-//     },
-//   })
-// );
+ResultTC.addRelation(
+  'players',
+  () => ({
+    resolver: PlayerTC.getResolver('findByIds'),
+    args: {
+      _ids: (source) => ( source.team ),
+    },
+  })
+);

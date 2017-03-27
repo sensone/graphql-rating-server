@@ -19,17 +19,13 @@ export const PlayerSchema = new Schema({
 export const Player = mongoose.model('Player', PlayerSchema);
 export const PlayerTC = composeWithRelay(composeWithMongoose(Player));
 
-// PlayerTC.addRelation(
-//   'results',
-//   () => ({
-//     resolver: ResultTC.get('$findMany'),
-//     args: {
-//       filter: (source) => ({
-//         _operators : {
-//           playerID : { in: source._id },
-//         }
-//       }),
-//     },
-//     projection: { _id: true },
-//   })
-// );
+PlayerTC.addRelation(
+  'results',
+  () => ({
+    resolver: ResultTC.getResolver('findMany'),
+    args: {
+      filter: (source) => ({ team: source._id.toString() }),
+    },
+    projection: { _id: true },
+  })
+);
