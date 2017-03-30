@@ -1,9 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
 import composeWithMongoose from 'graphql-compose-mongoose';
 import composeWithRelay from 'graphql-compose-relay';
+import { GraphQLBoolean } from 'graphql';
 
 import { ResultTC } from './Result';
-
+import { getOneYearBefore } from '../utils/helper';
 
 export const TournamentSchema = new Schema({
   name: String,
@@ -11,6 +12,7 @@ export const TournamentSchema = new Schema({
   title: String,
   weight: String,
   city: String,
+  type: String,
   players_count: Number,
 },
 {
@@ -25,7 +27,7 @@ TournamentTC.addRelation(
   () => ({
     resolver: ResultTC.getResolver('findMany'),
     args: {
-      filter: (source) => ({ tournamenID: source._id.toString() }),
+      filter: (source) => ({ tournamentID: source._id.toString() }),
       sort: { place: 1 },
     },
     projection: { _id: true },
@@ -33,12 +35,14 @@ TournamentTC.addRelation(
 );
 
 TournamentTC.addFields({
-  foo: {
-    type: 'String',
+  operable: {
+    type: GraphQLBoolean,
+    description: 'Availability tournament for analysis',
     resolve: (source) => {
-      console.log(source)
-      return `${source.title} ${source.date}`
+      const ONE_YEAR_BEFORE = getOneYearBefore();
+
+      return source.date >= ONE_YEAR_BEFORE;
     },
-    projection: { title: true, date: true },
-  }
-})
+    projection: { date: true }
+  },
+});

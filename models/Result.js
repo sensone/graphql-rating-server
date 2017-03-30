@@ -1,18 +1,21 @@
 import mongoose, { Schema } from 'mongoose';
 import composeWithMongoose from 'graphql-compose-mongoose';
-import { PlayerTC } from './Player';
-import { TournamentTC } from './Tournament';
 import composeWithRelay from 'graphql-compose-relay';
+import { GraphQLFloat } from 'graphql';
+
+import { PlayerTC } from './Player';
+import { TournamentTC, Tournament } from './Tournament';
+import { getPoints } from '../utils/helper';
 
 export const ResultSchema = new Schema({
   team: {
     type: [String],
     description: 'List of playerIDs'
   },
-  tournamenID: {
+  tournamentID: {
     type: String,
     ref: 'Tournament',
-    description: 'Tournamen ID',
+    description: 'Tournament ID',
   },
   place: {
     type: Number
@@ -25,32 +28,35 @@ export const ResultSchema = new Schema({
 export const Result = mongoose.model('Result', ResultSchema);
 export const ResultTC = composeWithRelay(composeWithMongoose(Result));
 
+ResultTC.addFields({
+  points: {
+    type: GraphQLFloat,
+    description: 'Rating points',
+    projection: { tournamentID: true, place: true },
+    resolve: async (source) => {
+      return await Tournament.findById({ _id: source.tournamentID }).then((tournament) => {
+        return getPoints(tournament, source);
+      });
+    },
+  }
+});
+
 ResultTC.addRelation(
   'tournament',
   () => ({
     resolver: TournamentTC.getResolver('findById'),
     args: {
-      _id: (source) => (source.tournamenID),
+      _id: (source) => (source.tournamentID),
     },
-    projection: { tournamenID: true },
+    projection: { tournamentID: true },
   })
 );
-
-// ResultTC.addRelation(
-//   'player',
-//   () => ({
-//     resolver: PlayerTC.getResolver('findById'),
-//     args: {
-//       _id: (source) => (source.playerID),
-//     },
-//     projection: { playerID: true },
-//   })
-// );
 
 ResultTC.addRelation(
   'players',
   () => ({
     resolver: PlayerTC.getResolver('findByIds'),
+    projection: { team: true },
     args: {
       _ids: (source) => ( source.team ),
     },
