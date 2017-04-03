@@ -1,5 +1,4 @@
 import { PlayerTC } from './models/Player';
-import { ResultTC } from './models/Result';
 import { TournamentTC } from './models/Tournament';
 // MULTI SCHEMA MODE IN ONE SERVER
 // create new GQC from ComposeStorage
@@ -28,13 +27,6 @@ const fields = {
   playerTotal: PlayerTC.getResolver('count'),
   playerConnection: PlayerTC.getResolver('connection'),
 
-  resultById: ResultTC.getResolver('findById'),
-  resultByIds: ResultTC.getResolver('findByIds'),
-  resultOne: ResultTC.getResolver('findOne'),
-  resultMany: ResultTC.getResolver('findMany'),
-  resultTotal: ResultTC.getResolver('count'),
-  resultConnection: ResultTC.getResolver('connection'),
-
   tournamentById: TournamentTC.getResolver('findById'),
   tournamentByIds: TournamentTC.getResolver('findByIds'),
   tournamentOne: TournamentTC.getResolver('findOne'),
@@ -53,14 +45,6 @@ GQC.rootMutation().addFields({
   playerRemoveById: PlayerTC.getResolver('removeById'),
   playerRemoveOne: PlayerTC.getResolver('removeOne'),
   playerRemoveMany: PlayerTC.getResolver('removeMany'),
-
-  resultCreate: ResultTC.getResolver('createOne'),
-  resultUpdateById: ResultTC.getResolver('updateById'),
-  resultUpdateOne: ResultTC.getResolver('updateOne'),
-  resultUpdateMany: ResultTC.getResolver('updateMany'),
-  resultRemoveById: ResultTC.getResolver('removeById'),
-  resultRemoveOne: ResultTC.getResolver('removeOne'),
-  resultRemoveMany: ResultTC.getResolver('removeMany'),
 
   tournamentCreate: TournamentTC.getResolver('createOne'),
   tournamentUpdateById: TournamentTC.getResolver('updateById'),

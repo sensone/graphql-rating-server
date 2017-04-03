@@ -12,8 +12,8 @@ const K = {
 // V – постоянная вариативности (по умолчанию = 10)
 // S – сложность турнира ( поле Score Type)
 //points = K[tournament.weight] * ((PLAYERS_COUNT - PLACE) + (K.V / PLACE))
-export function getPoints(tournament, source) {
-  return K[tournament.weight] * ((tournament.players_count - source.place) + (K.V / source.place));
+export function getPoints(tournament, place) {
+  return K[tournament.weight] * ((tournament.players_count - place) + (K.V / place));
 }
 
 export function getOneYearBefore() {
