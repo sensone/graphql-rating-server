@@ -1,11 +1,11 @@
 import mongoose, { Schema } from 'mongoose';
 import composeWithMongoose from 'graphql-compose-mongoose';
 import composeWithRelay from 'graphql-compose-relay';
-import { GraphQLFloat, GraphQLInt, GraphQLString } from 'graphql';
+import { test } from '../utils/updateRating';
 
 import { TournamentTC, Tournament } from './Tournament';
 import { TournamentForPlayerTC, getTournamentsForPlayer } from './TournamentForPlayer';
-import { RatingTC } from './Rating';
+import { RatingSchema } from './Rating';
 
 export const PlayerSchema = new Schema({
   name: String,
@@ -13,14 +13,15 @@ export const PlayerSchema = new Schema({
     type: String,
     enum: ['male', 'female'],
   },
-  city: String
+  city: String,
+  rating: RatingSchema,
+  rating_diff: RatingSchema
 },
 {
   collection: 'players',
   toObject: { virtuals: true },
   toJSON: { virtuals: true }
 });
-
 
 export const Player = mongoose.model('Player', PlayerSchema);
 export const PlayerTC = composeWithRelay(composeWithMongoose(Player));
@@ -30,54 +31,49 @@ PlayerTC.addFields({
     type: [TournamentForPlayerTC],
     resolve: (source) => (getTournamentsForPlayer(source)),
     args: {
-      _id: GraphQLString
+      _id: 'String'
     },
-  },
-
-  rating: {
-    type: RatingTC,
-    resolve: async (source) => {
-      const RESULTS = await getTournamentsForPlayer(source);
-      let dypResults = RESULTS.filter((result) => result.operable && result.weight === 'WEEK')
-        .sort((a, b) => b.result.points - a.result.points)
-        .slice(0, 10);
-      const OS = filterResults(RESULTS, 'OS');
-      const OD = filterResults(RESULTS, 'OD');
-      const DYP = getTotal(dypResults);
-
-      return {
-        OS: OS,
-        OD: OD,
-        DYP: DYP,
-        COMBINED: OS + OD + DYP,
-      }
-    },
-    args: {
-      _id: GraphQLString
-    },
-  },
+  }
 });
 
-function getTotal(results) {
-  return results.reduce((sum, a) => {
-    const RESULT_A = a.result || { points: 0 };
-
-    return RESULT_A.points + sum;
-  }, 0);
-}
-
-function filterResults(results, type) {
-  let yearResults = results.filter((result) => result.operable && result.type === type && result.weight === 'YEAR');
-  let monthResults = results.filter((result) => result.operable && result.type === type && result.weight === 'MONTH')
-    .sort((a, b) => b.result.points - a.result.points)
-    .slice(0, 4);
-  let itsfResults = results.filter((result) => result.operable && result.type === type && result.weight === 'ITSF')
-    .sort((a, b) => b.result.points - a.result.points)
-    .slice(0, 2);
-
-  const totalItsf = getTotal(itsfResults);
-  const totalMonth = getTotal(monthResults);
-  const totalYear = getTotal(yearResults);
-
-  return totalItsf + totalMonth + totalYear;
-}
+PlayerTC.getResolver('connection')
+  .addSortArg({
+     name: 'RATING_COMBINED_DESC',
+     description: 'Sorting by combined rating',
+     value: { 'rating.combined': -1 },
+  })
+  .addSortArg({
+     name: 'RATING_COMBINED_ASC',
+     description: 'Sorting by combined rating',
+     value: { 'rating.combined': 1 },
+  })
+  .addSortArg({
+     name: 'RATING_OS_COMBINED_DESC',
+     description: 'Sorting by OS combined rating',
+     value: { 'rating.os.combined': -1 },
+  })
+  .addSortArg({
+     name: 'RATING_OS_COMBINED_ASC',
+     description: 'Sorting by OS combined rating',
+     value: { 'rating.os.combined': 1 },
+  })
+  .addSortArg({
+     name: 'RATING_OD_COMBINED_DESC',
+     description: 'Sorting by OD combined rating',
+     value: { 'rating.od.combined': -1 },
+  })
+  .addSortArg({
+     name: 'RATING_OD_COMBINED_ASC',
+     description: 'Sorting by OD combined rating',
+     value: { 'rating.od.combined': 1 },
+  })
+  .addSortArg({
+     name: 'RATING_DYP_DESC',
+     description: 'Sorting by DYP rating',
+     value: { 'rating.dyp': -1 },
+  })
+  .addSortArg({
+     name: 'RATING_DYP_ASC',
+     description: 'Sorting by DYP rating',
+     value: { 'rating.dyp': 1 },
+  })

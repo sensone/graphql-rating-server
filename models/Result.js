@@ -15,33 +15,33 @@ export const ResultSchema = new Schema({
   place: {
     type: Number
   }
-}, { toObject: { virtuals: true }, toJSON: { virtuals: true } });
+}, { _id: false, toObject: { virtuals: true }, toJSON: { virtuals: true } });
 
 ResultSchema.virtual('points').get(function() {
   const TOURNAMENT = this.parent();
-
+//  console.dir(TOURNAMENT)
   return getPoints(TOURNAMENT, this.place);
 });
 
-export const Result = mongoose.model('Result', ResultSchema);
-export const ResultTC = composeWithRelay(composeWithMongoose(Result));
+//export const Result = mongoose.model('Result', ResultSchema);
+//export const ResultTC = composeWithRelay(composeWithMongoose(Result));
 
-ResultTC.addFields({
-  points: {
-    type: GraphQLFloat,
-    description: 'Rating points',
-    projection: { place: true, points: true },
-    resolve: (source, args, context, info) => (source.points),
-  }
-});
-
-ResultTC.addRelation(
-  'players',
-  () => ({
-    resolver: PlayerTC.getResolver('findByIds'),
-    projection: { team: true },
-    args: {
-      _ids: (source) => ( source.team ),
-    },
-  })
-);
+// ResultTC.addFields({
+//   points: {
+//     type: GraphQLFloat,
+//     description: 'Rating points',
+//     projection: { place: true, points: true },
+//     resolve: (source, args, context, info) => (source.points),
+//   }
+// });
+//
+// ResultTC.addRelation(
+//   'players',
+//   () => ({
+//     resolver: PlayerTC.getResolver('findByIds'),
+//     projection: { team: true },
+//     args: {
+//       _ids: (source) => ( source.team ),
+//     },
+//   })
+// );
